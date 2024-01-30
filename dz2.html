@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *,
+        *::after,
+        *::before {
+            margin: 0;
+            padding: 0;
+            box-sizing: content-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: rgb(223, 206, 209);
+        }
+
+        #main {
+            width: 90%;
+            margin: 0 auto;
+        }
+
+        p {
+            text-align: center;
+            font-weight: bold;
+        }
+
+        #names {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+
+            list-style: none;
+
+            margin: 15px 0 50px 0;
+        }
+
+        #names>li {
+            cursor: pointer;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            padding: 15px 0;
+            margin: 10px;
+
+            border: 1px solid darkgray;
+
+            width: 25%;
+        }
+
+        #names>li:hover {
+            border: 1px solid rgb(128, 123, 123);
+        }
+
+        #names>li.selected{
+            border: 1px solid rgb(128, 123, 123);
+        }
+
+        #table-div>button {
+            width: 100%;
+            margin-top: 10px;
+            padding: 5px 0;
+
+            font-size: 16px;
+
+            background-color: darkgray;
+            border: 1px solid rgb(128, 123, 123);
+
+            cursor: pointer;
+        }
+
+        #selectedUser {
+            margin-top: 20px;
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        #selectedUser td {
+            padding: 10px 0;
+            padding-left: 10px;
+            border: 1px solid black;
+        }
+
+        #selectedUser td:nth-child(1) {
+            width: 20%;
+        }
+
+        #user-posts-div{
+            display: flex;
+            flex-wrap: wrap;
+
+            justify-content: space-between;
+
+            gap: 20px;
+
+            margin: 40px 0 0;
+        }
+
+        #user-posts-div>p{
+            width: 100%;
+        }
+
+        #user-posts-div>div{
+            padding: 10px;
+            width: 45%;
+            border: 1px solid rgb(128, 123, 123);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="main">
+        <p>All users:</p>
+        <ul id="names">
+        </ul>
+        <p>User info:</p>
+        <div id="table-div">
+        </div>
+        <div id="user-posts-div">
+        </div>
+    </div>
+
+    <script>
+        var request = new XMLHttpRequest()
+
+        var users;
+        var selectedUser;
+        var selectedUserPosts;
+
+        function getPosts() {
+            let req = new XMLHttpRequest()
+
+            req.open("GET", `https://jsonplaceholder.typicode.com/posts?userId=${selectedUser.id}`)
+            req.onreadystatechange = function() {
+                if (req.readyState == 4) {
+                    selectedUserPosts = JSON.parse(req.responseText)
+                    let div = document.getElementById("user-posts-div")
+                    div.innerHTML += `<p>User's posts</p>`
+                    for (let i = 0; i < selectedUserPosts.length; i++) {
+                        div.innerHTML += `<div>
+                                        <p>${selectedUserPosts[i].title}</p>
+                                        ${selectedUserPosts[i].body}
+                                      </div>`
+                    }
+                }
+            }
+            req.send()
+        }
+
+        function showMoreInfo(event) {
+            document.querySelectorAll("#names>li").forEach(li=>li.className='')
+            event.target.className = "selected"
+            let name = event.target.innerText
+            selectedUser = users.filter(u => u.name == name)[0]
+
+            document.getElementById("table-div").innerHTML = `<table id="selectedUser">
+                                    <tbody>
+                                        <tr><td>Name:</td><td>${selectedUser.name}</td></tr>
+                                        <tr><td>Username:</td><td>${selectedUser.username}</td></tr>
+                                        <tr><td>Address:</td><td>${selectedUser.address.city}, ${selectedUser.address.street}</td></tr>
+                                        <tr><td>Email:</td><td>${selectedUser.email}</td></tr>
+                                        <tr><td>Phone:</td><td>${selectedUser.phone}</td></tr>
+                                        <tr><td>Website:</td><td>${selectedUser.website}</td></tr>
+                                    </tbody>
+                               </table>
+                               <button onclick="getPosts()">Show posts</button>`
+
+
+        }
+
+        function onRequestStateChange() {
+            if (request.readyState == 4) {
+                users = JSON.parse(request.responseText)
+                for (let i = 0; i < users.length; i++) {
+                    var liNode = document.createElement("li")
+                    liNode.innerText = users[i].name
+                    liNode.onclick = showMoreInfo
+                    document.body.querySelector("#names").appendChild(liNode)
+                }
+            }
+        }
+
+        request.open("GET", "https://jsonplaceholder.typicode.com/users")
+        request.onreadystatechange = onRequestStateChange;
+        request.send();
+    </script>
+</body>
+
+</html>
